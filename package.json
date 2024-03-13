@@ -1,0 +1,14 @@
+{
+  "name": "impl_url_collector",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "devDependencies": {},
+  "scripts": {
+    "get-bcd": "git clone --depth 1 https://github.com/mdn/browser-compat-data.git bcd",
+    "build-bcd": "cd bcd && npm install && npm run build",
+    "generate": "node index.js > data.json",
+    "cleanup": "npx rimraf bcd",
+    "serve": "npx http-server -p 8080 && open http://localhost:8080"
+  }
+}

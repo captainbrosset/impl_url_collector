@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+
+<style>
+  html {
+    margin: 0;
+  }
+
+  body {
+    font-family: system-ui;
+    font-size: .9rem;
+    padding: 1rem;
+  }
+
+  ul, li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .features {
+    border: 2px solid color-mix(in srgb, rebeccapurple, white);
+    border-block-end: none;
+  }
+
+  .features li {
+    padding: 1rem;
+    border-block-end: 2px solid color-mix(in srgb, rebeccapurple, white);
+    break-inside: avoid;
+  }
+
+  .features .selected {
+    background-color: color-mix(in srgb, rebeccapurple, white);
+  }
+
+  .features .special {
+    opacity: .6;
+    background: #eee;
+  }
+
+  .features p {
+    margin: 0;
+  }
+
+  .features h2 {
+    margin: 0;
+    font-size: 1rem;
+    word-break: break-all;
+  }
+
+  .features .browser {
+    text-transform: uppercase;
+    color: rebeccapurple;
+    font-weight: bold;
+  }
+
+  .features .links {
+    display: flex;
+    gap: .5rem;
+  }
+</style>
+
+<h1>Unimplemented BCD features with missing <code>impl_url</code> properties</h1>
+
+<p>This is a subset of web features that are documented in BCD as not implemented in a given browser, while also not
+  having a <code>impl_url</code> property defined.<br>This list helps with searching for, and
+  identifying, the right <code>impl_url</code>. Each feature listed below comes with a few links that help find relevant information and, eventually, identify the right bug URL for the missing feature.</p>
+  <p>The page only shows a random subset of <span id="len"></span> features. To list other features, refresh the page.</p>
+
+<ul class="features"></ul>
+
+<script>
+  const MOZILLA_BUGZILLA_SEARCH = 'https://www.google.com/search?q=[[query]]+site%3Abugzilla.mozilla.org';
+  const CHROMIUM_BUGS_SEARCH = 'https://www.google.com/search?q=[[query]]+site%3Aissues.chromium.org';
+  const WEBKIT_BUGS_SEARCH = 'https://www.google.com/search?q=[[query]]+site%3Abugs.webkit.org';
+  const MAX_FEATURES = 30;
+
+  document.getElementById('len').textContent = MAX_FEATURES;
+
+  const BROWSER_SEARCH_URLS = {
+    firefox: MOZILLA_BUGZILLA_SEARCH,
+    firefox_android: MOZILLA_BUGZILLA_SEARCH,
+    chrome: CHROMIUM_BUGS_SEARCH,
+    chrome_android: CHROMIUM_BUGS_SEARCH,
+    opera: CHROMIUM_BUGS_SEARCH,
+    opera_android: CHROMIUM_BUGS_SEARCH,
+    samsunginternet_android: CHROMIUM_BUGS_SEARCH,
+    edge: CHROMIUM_BUGS_SEARCH,
+    safari: WEBKIT_BUGS_SEARCH,
+    safari_ios: WEBKIT_BUGS_SEARCH,
+  };
+
+  async function fetchFiles(files) {
+    const responses = await Promise.all(files.map(file => fetch(file)));
+    return await Promise.all(responses.map(response => response.json()));
+  }
+
+  fetchFiles(['data.json', 'notes.json']).then(res => {
+    let [data, notes] = res;
+
+    // Randomize the data array.
+    data.sort(() => Math.random() - 0.5);
+    // Create a sublist of the first few items.
+    data = data.slice(0, MAX_FEATURES);
+
+    const features = document.querySelector('.features');
+    data.forEach(feature => {
+      const li = document.createElement('li');
+
+      const specialBrowserFeatures = notes[feature.browser] || [];
+      const note = specialBrowserFeatures.find(specialFeature => {
+        return specialFeature.keys.some(keyPart => feature.bcdKey.includes(keyPart));
+      });
+      let specialNote = '';
+      if (note) {
+        li.classList.add("special");
+        specialNote = `<p class="note"><strong>Note</strong>: ${note.reason} (<a href="${note.link}">more info</a>)</p>`;
+      }
+
+      const spec = feature.spec_url
+        ? `<span class="spec"><a href="${feature.spec_url}" target="_blank">Spec</a></span>`
+        : '';
+
+      const mdn = feature.mdn_url
+        ? `<span class="mdn"><a href="${feature.mdn_url}" target="_blank">MDN</a></span>`
+        : '';
+
+      let standardsPos = '';
+      const shortFeatureName = feature.bcdKey.split('.')[1];
+      if (feature.browser === "firefox") {
+        standardsPos = `<span class="standards-pos"><a href="https://github.com/mozilla/standards-positions/issues?q=${shortFeatureName}" target="_blank">Mozilla's position</a></span>`;
+      } else if (feature.browser === "safari") {
+        standardsPos = `<span class="standards-pos"><a href="https://github.com/WebKit/standards-positions/issues?q=${shortFeatureName}" target="_blank">Safari's position</a></span>`;
+      }
+
+      const searchUrl = BROWSER_SEARCH_URLS[feature.browser]
+        .replace('[[query]]', "implement " + feature.bcdKey.replace(/\./g, ' '));
+
+      li.innerHTML = `
+        <p class="browser">${feature.browser}</p>
+        <h2>${feature.bcdKey}</h2>
+        ${specialNote}
+        <div class="links">
+          ${spec}
+          ${mdn}
+          ${standardsPos}
+          <span class="ch-status"><a href="https://chromestatus.com/features#${shortFeatureName}" target="_blank">Chrome status</a></span>
+          <span class="bugs"><a href="${searchUrl}" target="_blank">Bugs</a></span>
+        </div>
+      `;
+
+      li.addEventListener('mousedown', () => {
+        features.querySelectorAll('.selected').forEach(selected => {
+          selected.classList.remove('selected');
+        });
+        li.classList.add('selected');
+      });
+
+      features.appendChild(li);
+    });
+  });
+</script>

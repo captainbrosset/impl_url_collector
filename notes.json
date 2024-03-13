@@ -1,0 +1,26 @@
+{
+  "firefox": [
+    {
+      "keys": ["api.ScreenDetails", "api.ScreenDetailed"],
+      "reason": "Mozilla has security/privacy concerns and the standards discussion did not reach a consensus.",
+      "link": "https://github.com/mozilla/standards-positions/issues/542"
+    },
+    {
+      "keys": ["api.EditContext"],
+      "reason": "Silence on the standards position discussion. Waiting for Mozilla to come back with a position and possibly a tracking bug.",
+      "link": "https://github.com/mozilla/standards-positions/issues/199"
+    },
+    {
+      "keys": ["api.HID"],
+      "reason": "Mozilla considers this API harmful",
+      "link": "https://mozilla.github.io/standards-positions/#webhid"
+    }
+  ],
+  "safari": [
+    {
+      "keys": ["api.USB"],
+      "reason": "Privacy and security concerns on the standards position discussion.",
+      "link": "https://github.com/WebKit/standards-positions/issues/68"
+    }
+  ]
+}
